@@ -1,0 +1,1 @@
+# manufacturer.env에 input값 적혀있음
