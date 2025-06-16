@@ -19,7 +19,8 @@ class ScenarioManager():
 
     def Register_Engine(self):
         self.send = SystemSimulator()
-        self.send.register_engine("Scenario", "REAL_TIME", 1)
+        sim_mode = os.getenv("SIM_MODE", "REAL_TIME")
+        self.send.register_engine("Scenario", sim_mode, 1)
         self.send_model = self.send.get_engine("Scenario")
 
         self.Insert_Port()
@@ -60,16 +61,16 @@ class ScenarioManager():
 
 
     def class_import(self):
-        load_dotenv(dotenv_path="manufacturer.env")
+        # load_dotenv(dotenv_path="manufacturer.env")
 
-        TYPE = os.getenv('TYPE')
-        WORKING_TIME = os.getenv('WORKING_TIME')
-        TARGET_PRODUCTION = os.getenv('TARGET_PRODUCTION')
-        FAILURE_RATE = os.getenv('FAILURE_RATE')
-        DEFAULT_PRODUCTION_RATE = os.getenv('DEFAULT_PRODUCTION_RATE')
-        CHECK_PRODUCTION_RATE = os.getenv('CHECK_PRODUCTION_RATE')
-        SIMULATION_TIME_STEP = os.getenv('SIMULATION_TIME_STEP')
-        ACCUMULATED_DEFECT_RATE = os.getenv('ACCUMULATED_DEFECT_RATE')
+        TYPE = os.getenv('TYPE', "manufacturer")
+        WORKING_TIME = os.getenv('WORKING_TIME', "60")
+        TARGET_PRODUCTION = os.getenv('TARGET_PRODUCTION', "30")
+        FAILURE_RATE = os.getenv('FAILURE_RATE', "0.3")
+        DEFAULT_PRODUCTION_RATE = os.getenv('DEFAULT_PRODUCTION_RATE', "5")
+        CHECK_PRODUCTION_RATE = os.getenv('CHECK_PRODUCTION_RATE', "2.5")
+        SIMULATION_TIME_STEP = os.getenv('SIMULATION_TIME_STEP', "2")
+        ACCUMULATED_DEFECT_RATE = os.getenv('ACCUMULATED_DEFECT_RATE', "0.02")
 
         print(
             f"*✅ Simulation Init\n"
@@ -108,4 +109,7 @@ class ScenarioManager():
                             ACCUMULATED_DEFECT_RATE )
 
 
-ScenarioManager()
+if __name__ == "__main__":
+    nodename = os.getenv("NODE_NAME", "default")
+    print(f" # Current Node : {nodename}")
+    ScenarioManager()
