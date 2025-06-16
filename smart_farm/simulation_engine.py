@@ -18,7 +18,8 @@ class ScenarioManager():
 
     def Register_Engine(self):
         self.send = SystemSimulator()
-        self.send.register_engine("Scenario", "REAL_TIME", 1)
+        sim_mode = os.getenv("SIM_MODE", "REAL_TIME")
+        self.send.register_engine("Scenario", sim_mode, 1)
         self.send_model = self.send.get_engine("Scenario")
 
         self.Insert_Port()
@@ -59,20 +60,19 @@ class ScenarioManager():
 
 
     def class_import(self):
-        load_dotenv(dotenv_path="smart_farm.env")
 
-        TYPE = os.getenv('TYPE')
-        TOTAL_DAY = os.getenv('TOTAL_DAY')
-        TARGET_PRODUCTION = os.getenv('TARGET_PRODUCTION')
-        FAILURE_RATE = os.getenv('FAILURE_RATE')
+        TYPE = os.getenv('TYPE', "smart_farm")
+        TOTAL_DAY = os.getenv('TOTAL_DAY', 3)
+        TARGET_PRODUCTION = os.getenv('TARGET_PRODUCTION', 50)
+        FAILURE_RATE = os.getenv('FAILURE_RATE', 0.1)
 
-        GROWTH_DAYS_REQUIRED = os.getenv('GROWTH_DAYS_REQUIRED')
+        GROWTH_DAYS_REQUIRED = os.getenv('GROWTH_DAYS_REQUIRED', 0.8)
 
-        SOIL_RANGE = os.getenv('SOIL_RANGE')
-        HUMIDITY_RANGE = os.getenv('HUMIDITY_RANGE')
-        TEMP_RANGE = os.getenv('TEMP_RANGE')
+        SOIL_RANGE = os.getenv('SOIL_RANGE', "(40, 60)")
+        HUMIDITY_RANGE = os.getenv('HUMIDITY_RANGE', "(50, 70)")
+        TEMP_RANGE = os.getenv('TEMP_RANGE', "(18, 26)")
 
-        ADJUST_INTERVAL = os.getenv('ADJUST_INTERVAL')
+        ADJUST_INTERVAL = os.getenv('ADJUST_INTERVAL', 1)
 
 
         print(
@@ -113,5 +113,7 @@ class ScenarioManager():
                            SOIL_RANGE,HUMIDITY_RANGE,TEMP_RANGE,
                            ADJUST_INTERVAL)
 
-
-ScenarioManager()
+if __name__ == "__main__":
+    nodename = os.getenv("NODE_NAME", "default")
+    print(f" # Current Node : {nodename}")
+    ScenarioManager()
