@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: latency-monitor
+  namespace: monitor
+spec:
+  selector:
+    matchLabels:
+      app: latency-monitor
+  template:
+    metadata:
+      labels:
+        app: latency-monitor
+    spec:
+      terminationGracePeriodSeconds: 5
+      volumes:
+        - name: log-volume
+          emptyDir: {}
+      containers:
+        - name: latency-writer
+          image: busybox:1.35
+          volumeMounts:
+            - name: log-volume
+              mountPath: /tmp
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          command:
+            - /bin/sh
+            - -c
+            - |
+              PERIOD=60
+              TARGETS="192.168.124.201 192.168.124.202 192.168.124.203 192.168.124.204 192.168.124.205"
+              LOGFILE="/tmp/latency.log"
+
+              while true; do
+                SELF_NODE=$NODE_NAME
+                SELF_IP=$NODE_IP
+
+                {
+                  echo "# $(date '+%Y-%m-%d %H:%M:%S') - 지연시간 측정 시작"
+                  echo "[현재 노드] $SELF_NODE (IP: $SELF_IP)"
+                  echo ""
+
+                  SUMMARY=""
+                  TOTAL_SUM=0
+                  TOTAL_COUNT=0
+
+                  for IP in $TARGETS; do
+                    if [ "$IP" != "$SELF_IP" ]; then
+                      echo "[대상] $IP"
+                      IP_SUM=0
+                      IP_COUNT=0
+
+                      for i in 1 2 3 4 5; do
+                        TIME=$(ping -c 1 $IP 2>/dev/null | grep 'time=' | sed -E 's/.*time=([0-9.]+) ms.*/\1/')
+                        if [ -n "$TIME" ]; then
+                          echo "$IP: ${TIME} ms"
+                          IP_SUM=$(echo "$IP_SUM + $TIME" | bc)
+                          IP_COUNT=$((IP_COUNT + 1))
+                        else
+                          echo "$IP: 실패"
+                        fi
+                        sleep 0.2
+                      done
+
+                      if [ "$IP_COUNT" -gt 0 ]; then
+                        IP_AVG=$(echo "scale=3; $IP_SUM / $IP_COUNT" | bc)
+                        SUMMARY="${SUMMARY}\n - $IP: ${IP_AVG} ms"
+                        TOTAL_SUM=$(echo "$TOTAL_SUM + $IP_SUM" | bc)
+                        TOTAL_COUNT=$((TOTAL_COUNT + IP_COUNT))
+                      else
+                        SUMMARY="${SUMMARY}\n - $IP: 실패 (응답 없음)"
+                      fi
+                      echo ""
+                    fi
+                  done
+
+                  echo "[대상별 평균 지연시간]"
+                  echo -e "$SUMMARY"
+
+                  if [ "$TOTAL_COUNT" -gt 0 ]; then
+                    TOTAL_AVG=$(echo "scale=3; $TOTAL_SUM / $TOTAL_COUNT" | bc)
+                    echo "[모든 노드 대상 평균 지연시간] $TOTAL_AVG ms"
+                  else
+                    echo "[모든 노드 대상 평균 지연시간] 계산 불가"
+                  fi
+
+                  echo "# 테스트 종료. ${PERIOD}초 후 재시작"
+
+                } > "$LOGFILE"
+
+                sleep $PERIOD
+              done
+
