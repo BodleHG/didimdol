@@ -1,31 +1,30 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: smart-farm
-  namespace: didimdol
+  name: manufacture
+  namespace: abs
 data:
   SIM_MODE: VIRTUAL_TIME
-  TYPE: smart_farm
-  TOTAL_DAY: '3'
-  TARGET_PRODUCTION: '50'
-  FAILURE_RATE: '0.1'
-  GROWTH_DAYS_REQUIRED: '0.8'
-  SOIL_RANGE: "(40, 60)"
-  HUMIDITY_RANGE: "(50, 70)"
-  TEMP_RANGE: "(18, 26)"
-  ADJUST_INTERVAL: '1'
+  TYPE: manufacturer
+  WORKING_TIME: "60"
+  TARGET_PRODUCTION: "30"
+  FAILURE_RATE: "0.3"
+  DEFAULT_PRODUCTION_RATE: "5"
+  CHECK_PRODUCTION_RATE: "2.5"
+  SIMULATION_TIME_STEP: "2"
+  ACCUMULATED_DEFECT_RATE: "0.02"
 
 ---
 
 apiVersion: v1
 kind: Pod
 metadata:
-  name: smart-farm-simulator
-  namespace: didimdol
+  name: manufacture-simulator
+  namespace: abs
 spec:
   containers:
     - name: simulator
-      image: bodlehg/didimdol:smart_farm
+      image: bodlehg/didimdol:manufacture
       imagePullPolicy: Always
       env:
         - name: NODE_NAME
@@ -34,7 +33,7 @@ spec:
               fieldPath: spec.nodeName
       envFrom:
       - configMapRef:
-          name: smart-farm
+          name: manufacture
       resources:
         requests:
           memory: "2Gi"

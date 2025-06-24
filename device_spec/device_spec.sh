@@ -57,4 +57,4 @@ fi
 echo "- $CPU_MODEL ($L3_CACHE L3 Cache, $CORES Cores, $THREADS Threads, ${FREQ_MIN}GHz to ${FREQ_MAX}GHz Turbo)"
 echo "- ${MEM_SIZE}${MEM_UNIT} (${MEM_TYPE} ${MEM_SPEED})"
 echo "- $DISK_TYPE: $SIZE_HUMAN ($INTERFACE)"
-
+echo "- OS: $(grep '^PRETTY_NAME=' /etc/os-release | cut -d= -f2 | tr -d '"')"
